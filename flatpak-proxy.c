@@ -827,12 +827,14 @@ side_closed (ProxySide *side)
   socket = g_socket_connection_get_socket (side->connection);
   g_socket_close (socket, NULL);
   side->closed = TRUE;
+  stop_reading (side);
 
   other_socket = g_socket_connection_get_socket (other_side->connection);
   if (!other_side->closed && other_side->buffers == NULL)
     {
       g_socket_close (other_socket, NULL);
       other_side->closed = TRUE;
+      stop_reading (other_side);
     }
 
   if (other_side->closed)
@@ -3064,6 +3066,7 @@ side_in_cb (GSocket *socket, GIOCondition condition, gpointer user_data)
                 {
                   g_warning ("Invalid message header read");
                   side_closed (side);
+                  continue;
                 }
               else
                 {
